@@ -1,0 +1,544 @@
+```react
+import React, { useState } from 'react';
+import { ShoppingBag, X, CheckCircle, CreditCard, Truck, ChevronRight, Menu, Plus, Minus, Trash2 } from 'lucide-react';
+
+// --- MOCK DATA (Produtos) ---
+const PRODUCTS = [
+  { 
+    id: 1, 
+    name: 'Anel Solitário Diamante', 
+    price: 4500.00, 
+    category: 'Anéis', 
+    image: 'https://images.unsplash.com/photo-1605100804763-247f66156eb4?auto=format&fit=crop&q=80&w=600' 
+  },
+  { 
+    id: 2, 
+    name: 'Colar Ouro Branco 18k', 
+    price: 3200.00, 
+    category: 'Colares', 
+    image: 'https://images.unsplash.com/photo-1599643478514-4a4e09b50708?auto=format&fit=crop&q=80&w=600' 
+  },
+  { 
+    id: 3, 
+    name: 'Brincos de Esmeralda', 
+    price: 5800.00, 
+    category: 'Brincos', 
+    image: 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&q=80&w=600' 
+  },
+  { 
+    id: 4, 
+    name: 'Pulseira Pérolas Cultivadas', 
+    price: 1850.00, 
+    category: 'Pulseiras', 
+    image: 'https://images.unsplash.com/photo-1611591437281-460bfbe1220a?auto=format&fit=crop&q=80&w=600' 
+  },
+  { 
+    id: 5, 
+    name: 'Aliança Casamento Ouro', 
+    price: 2100.00, 
+    category: 'Anéis', 
+    image: 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?auto=format&fit=crop&q=80&w=600' 
+  },
+  { 
+    id: 6, 
+    name: 'Pingente Safira Azul', 
+    price: 2900.00, 
+    category: 'Colares', 
+    image: 'https://images.unsplash.com/photo-1601121141461-9d6647bca1ed?auto=format&fit=crop&q=80&w=600' 
+  },
+  { 
+    id: 7, 
+    name: 'Brinco Argola Dourada', 
+    price: 39.90, 
+    category: 'Bijuterias', 
+    image: 'https://images.unsplash.com/photo-1635322966219-b75ed372eb01?auto=format&fit=crop&q=80&w=600' 
+  },
+  { 
+    id: 8, 
+    name: 'Colar Miçangas e Búzios', 
+    price: 29.50, 
+    category: 'Bijuterias', 
+    image: 'https://images.unsplash.com/photo-1602173574767-37ac01994b2a?auto=format&fit=crop&q=80&w=600' 
+  },
+  { 
+    id: 9, 
+    name: 'Kit 3 Anéis Falange', 
+    price: 45.00, 
+    category: 'Bijuterias', 
+    image: 'https://images.unsplash.com/photo-1611591437281-460bfbe1220a?auto=format&fit=crop&q=80&w=600' 
+  }
+];
+
+export default function App() {
+  const [view, setView] = useState('home'); // 'home', 'cart', 'checkout', 'success'
+  const [cart, setCart] = useState([]);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // --- FUNÇÕES DO CARRINHO ---
+  const addToCart = (product) => {
+    setCart((prev) => {
+      const existing = prev.find(item => item.id === product.id);
+      if (existing) {
+        return prev.map(item => item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item);
+      }
+      return [...prev, { ...product, quantity: 1 }];
+    });
+    // Feedback visual poderia ser adicionado aqui (ex: um toast)
+  };
+
+  const updateQuantity = (id, delta) => {
+    setCart((prev) => prev.map(item => {
+      if (item.id === id) {
+        const newQuantity = Math.max(1, item.quantity + delta);
+        return { ...item, quantity: newQuantity };
+      }
+      return item;
+    }));
+  };
+
+  const removeFromCart = (id) => {
+    setCart((prev) => prev.filter(item => item.id !== id));
+  };
+
+  const cartTotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const cartItemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+
+  // --- FUNÇÕES UTILITÁRIAS ---
+  const formatCurrency = (value) => {
+    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+  };
+
+  const navigateTo = (page) => {
+    setView(page);
+    window.scrollTo(0, 0);
+    setMobileMenuOpen(false);
+  };
+
+  const handleCheckoutSubmit = (e) => {
+    e.preventDefault();
+    // Aqui seria feita a integração com gateway de pagamento real
+    setCart([]); // Limpa o carrinho
+    navigateTo('success');
+  };
+
+  // --- COMPONENTES DE VISUALIZAÇÃO ---
+
+  const renderNavbar = () => (
+    <nav className="bg-white border-b border-gray-200 sticky top-0 z-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between h-20 items-center">
+          {/* Menu Mobile */}
+          <div className="flex items-center sm:hidden">
+            <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="text-gray-600 hover:text-gray-900">
+              {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>
+          </div>
+
+          {/* Logo */}
+          <div className="flex-1 flex justify-center sm:justify-start">
+            <button onClick={() => navigateTo('home')} className="flex items-center">
+              <span className="font-serif text-2xl tracking-widest text-slate-900 font-bold uppercase">Raab Joias</span>
+            </button>
+          </div>
+
+          {/* Links Desktop */}
+          <div className="hidden sm:flex space-x-8 items-center absolute left-1/2 transform -translate-x-1/2">
+            <button onClick={() => navigateTo('home')} className="text-sm uppercase tracking-wider text-gray-600 hover:text-amber-600 transition">Coleções</button>
+            <button onClick={() => navigateTo('home')} className="text-sm uppercase tracking-wider text-gray-600 hover:text-amber-600 transition">Lançamentos</button>
+            <button onClick={() => navigateTo('home')} className="text-sm uppercase tracking-wider text-gray-600 hover:text-amber-600 transition">Sobre Nós</button>
+          </div>
+
+          {/* Cart Icon */}
+          <div className="flex items-center justify-end">
+            <button onClick={() => navigateTo('cart')} className="relative text-gray-600 hover:text-slate-900 p-2">
+              <ShoppingBag size={24} />
+              {cartItemCount > 0 && (
+                <span className="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white transform translate-x-1/4 -translate-y-1/4 bg-amber-600 rounded-full">
+                  {cartItemCount}
+                </span>
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      {/* Mobile Menu Dropdown */}
+      {mobileMenuOpen && (
+        <div className="sm:hidden bg-white border-t border-gray-100 px-2 pt-2 pb-3 space-y-1">
+          <button onClick={() => navigateTo('home')} className="block px-3 py-2 text-base font-medium text-gray-700 w-full text-left">Coleções</button>
+          <button onClick={() => navigateTo('home')} className="block px-3 py-2 text-base font-medium text-gray-700 w-full text-left">Lançamentos</button>
+          <button onClick={() => navigateTo('home')} className="block px-3 py-2 text-base font-medium text-gray-700 w-full text-left">Sobre Nós</button>
+        </div>
+      )}
+    </nav>
+  );
+
+  const renderHome = () => (
+    <div className="animate-fade-in">
+      {/* Hero Section */}
+      <div className="relative bg-slate-950 text-white overflow-hidden">
+        {/* Efeito de brilho dourado no fundo */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-3xl h-[400px] bg-amber-600/10 blur-[120px] rounded-full pointer-events-none"></div>
+        
+        <div className="relative max-w-7xl mx-auto px-4 py-32 sm:py-40 sm:px-6 lg:px-8 flex flex-col items-center text-center">
+          <span className="text-amber-500 font-semibold tracking-[0.3em] uppercase text-sm mb-4">A essência do luxo</span>
+          <h1 className="text-5xl sm:text-6xl lg:text-7xl font-serif tracking-tight mb-6 leading-tight">
+            Brilho que <br className="hidden sm:block" />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-amber-400 to-amber-600">
+              transcende o tempo
+            </span>
+          </h1>
+          <p className="max-w-2xl text-lg sm:text-xl text-gray-400 mb-10 font-light">
+            Descubra a coleção exclusiva RAAB JOIAS. Peças desenhadas para eternizar momentos inesquecíveis.
+          </p>
+          <button onClick={() => window.scrollTo({top: 600, behavior: 'smooth'})} className="border border-amber-500 text-amber-500 hover:bg-amber-500 hover:text-slate-950 px-10 py-4 rounded-sm uppercase tracking-[0.2em] text-sm transition-all duration-500">
+            Explorar Coleção
+          </button>
+        </div>
+      </div>
+
+      {/* Product Grid */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl font-serif text-slate-900 mb-4">Nossas Joias</h2>
+          <div className="w-16 h-0.5 bg-amber-600 mx-auto"></div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-y-10 gap-x-8">
+          {PRODUCTS.map((product) => (
+            <div key={product.id} className="group relative border border-transparent hover:border-gray-100 hover:shadow-xl transition duration-300 bg-white flex flex-col">
+              <div className="aspect-w-1 aspect-h-1 w-full h-80 overflow-hidden bg-slate-50 relative flex items-center justify-center border border-gray-100">
+                <span className="font-serif text-2xl text-gray-200 tracking-widest uppercase">Raab</span>
+                <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-5 transition-opacity flex items-end justify-center pb-6 opacity-0 group-hover:opacity-100">
+                  <button 
+                    onClick={() => addToCart(product)}
+                    className="bg-white text-slate-900 px-6 py-2 uppercase text-xs tracking-widest font-semibold hover:bg-amber-600 hover:text-white transition duration-300 shadow-lg"
+                  >
+                    Adicionar ao Carrinho
+                  </button>
+                </div>
+              </div>
+              <div className="mt-4 flex flex-col text-center px-4 pb-6">
+                <span className="text-xs text-gray-500 uppercase tracking-widest mb-1">{product.category}</span>
+                <h3 className="text-lg font-serif text-slate-900 mb-2">{product.name}</h3>
+                <p className="text-amber-700 font-medium">{formatCurrency(product.price)}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderCart = () => (
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 animate-fade-in min-h-[60vh]">
+      <h1 className="text-3xl font-serif text-slate-900 mb-8 pb-4 border-b">Seu Carrinho</h1>
+      
+      {cart.length === 0 ? (
+        <div className="text-center py-16">
+          <ShoppingBag className="mx-auto h-16 w-16 text-gray-300 mb-4" />
+          <p className="text-xl text-gray-500 mb-6">Seu carrinho está vazio.</p>
+          <button 
+            onClick={() => navigateTo('home')}
+            className="inline-block bg-slate-900 text-white px-8 py-3 uppercase tracking-widest text-sm hover:bg-slate-800 transition"
+          >
+            Continuar Comprando
+          </button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+          <div className="lg:col-span-2 space-y-6">
+            {cart.map((item) => (
+              <div key={item.id} className="flex items-center py-6 border-b border-gray-200">
+                <div className="w-24 h-24 bg-slate-50 border border-gray-100 rounded flex items-center justify-center flex-shrink-0">
+                  <span className="font-serif text-xs text-gray-300 uppercase">Raab</span>
+                </div>
+                <div className="ml-6 flex-1">
+                  <h3 className="text-lg font-serif text-slate-900">{item.name}</h3>
+                  <p className="text-amber-700 font-medium mt-1">{formatCurrency(item.price)}</p>
+                  
+                  <div className="flex items-center mt-4">
+                    <div className="flex items-center border border-gray-300 rounded">
+                      <button onClick={() => updateQuantity(item.id, -1)} className="p-1 px-3 text-gray-600 hover:bg-gray-100"><Minus size={14}/></button>
+                      <span className="px-4 text-sm font-medium">{item.quantity}</span>
+                      <button onClick={() => updateQuantity(item.id, 1)} className="p-1 px-3 text-gray-600 hover:bg-gray-100"><Plus size={14}/></button>
+                    </div>
+                    <button onClick={() => removeFromCart(item.id)} className="ml-6 text-sm text-red-500 flex items-center hover:text-red-700">
+                      <Trash2 size={16} className="mr-1" /> Remover
+                    </button>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="font-medium text-slate-900">{formatCurrency(item.price * item.quantity)}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="bg-slate-50 p-8 rounded-sm h-fit">
+            <h2 className="text-xl font-serif text-slate-900 mb-6">Resumo do Pedido</h2>
+            <div className="space-y-4 text-sm text-gray-600">
+              <div className="flex justify-between">
+                <span>Subtotal</span>
+                <span>{formatCurrency(cartTotal)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Frete (Jardim Europa - SP)</span>
+                <span className="text-green-600">Grátis</span>
+              </div>
+              <div className="border-t border-gray-200 pt-4 mt-4 flex justify-between font-medium text-lg text-slate-900">
+                <span>Total</span>
+                <span className="text-amber-700">{formatCurrency(cartTotal)}</span>
+              </div>
+            </div>
+            <button 
+              onClick={() => navigateTo('checkout')}
+              className="w-full mt-8 bg-amber-600 text-white py-4 uppercase tracking-widest text-sm font-semibold hover:bg-amber-700 transition"
+            >
+              Finalizar Compra
+            </button>
+            <div className="mt-4 flex items-center justify-center text-xs text-gray-500">
+              <CheckCircle size={14} className="mr-1 text-green-500" /> Compra 100% Segura
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+
+  const renderCheckout = () => {
+    if (cart.length === 0) return renderCart(); // Redireciona se carrinho vazio
+
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 animate-fade-in">
+        <button onClick={() => navigateTo('cart')} className="text-sm text-gray-500 hover:text-amber-600 mb-6 inline-block">
+          &larr; Voltar para o carrinho
+        </button>
+        <h1 className="text-3xl font-serif text-slate-900 mb-8">Finalização Seguro</h1>
+        
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+          {/* Formulário de Checkout */}
+          <div>
+            <form onSubmit={handleCheckoutSubmit} className="space-y-8">
+              {/* Dados Pessoais */}
+              <div>
+                <h2 className="text-xl font-serif text-slate-900 mb-4 flex items-center border-b pb-2">
+                  <span className="bg-slate-900 text-white rounded-full w-6 h-6 inline-flex items-center justify-center text-xs mr-3">1</span>
+                  Dados Pessoais
+                </h2>
+                <div className="grid grid-cols-1 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Nome Completo</label>
+                    <input type="text" required className="mt-1 block w-full border border-gray-300 rounded-sm shadow-sm py-2 px-3 focus:ring-amber-500 focus:border-amber-500 sm:text-sm" />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">E-mail</label>
+                      <input type="email" required className="mt-1 block w-full border border-gray-300 rounded-sm shadow-sm py-2 px-3 focus:ring-amber-500 focus:border-amber-500 sm:text-sm" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">CPF</label>
+                      <input type="text" required placeholder="000.000.000-00" className="mt-1 block w-full border border-gray-300 rounded-sm shadow-sm py-2 px-3 focus:ring-amber-500 focus:border-amber-500 sm:text-sm" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Entrega */}
+              <div>
+                <h2 className="text-xl font-serif text-slate-900 mb-4 flex items-center border-b pb-2">
+                  <span className="bg-slate-900 text-white rounded-full w-6 h-6 inline-flex items-center justify-center text-xs mr-3">2</span>
+                  Endereço de Entrega
+                </h2>
+                <div className="grid grid-cols-1 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">CEP</label>
+                    <input type="text" required placeholder="00000-000" className="mt-1 block w-full border border-gray-300 rounded-sm shadow-sm py-2 px-3 focus:ring-amber-500 focus:border-amber-500 sm:text-sm" />
+                  </div>
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="col-span-2">
+                      <label className="block text-sm font-medium text-gray-700">Endereço</label>
+                      <input type="text" required className="mt-1 block w-full border border-gray-300 rounded-sm shadow-sm py-2 px-3 focus:ring-amber-500 focus:border-amber-500 sm:text-sm" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Número</label>
+                      <input type="text" required className="mt-1 block w-full border border-gray-300 rounded-sm shadow-sm py-2 px-3 focus:ring-amber-500 focus:border-amber-500 sm:text-sm" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Pagamento */}
+              <div>
+                <h2 className="text-xl font-serif text-slate-900 mb-4 flex items-center border-b pb-2">
+                  <span className="bg-slate-900 text-white rounded-full w-6 h-6 inline-flex items-center justify-center text-xs mr-3">3</span>
+                  Pagamento
+                </h2>
+                <div className="bg-gray-50 p-4 border border-gray-200 rounded-sm mb-4 flex items-center">
+                  <CreditCard className="text-gray-400 mr-3" />
+                  <span className="font-medium text-sm text-slate-900">Cartão de Crédito</span>
+                </div>
+                <div className="grid grid-cols-1 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Número do Cartão</label>
+                    <input type="text" required placeholder="0000 0000 0000 0000" className="mt-1 block w-full border border-gray-300 rounded-sm shadow-sm py-2 px-3 focus:ring-amber-500 focus:border-amber-500 sm:text-sm" />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Validade (MM/AA)</label>
+                      <input type="text" required placeholder="MM/AA" className="mt-1 block w-full border border-gray-300 rounded-sm shadow-sm py-2 px-3 focus:ring-amber-500 focus:border-amber-500 sm:text-sm" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">CVC</label>
+                      <input type="text" required placeholder="123" className="mt-1 block w-full border border-gray-300 rounded-sm shadow-sm py-2 px-3 focus:ring-amber-500 focus:border-amber-500 sm:text-sm" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <button type="submit" className="w-full bg-slate-900 text-white py-4 uppercase tracking-widest text-sm font-semibold hover:bg-slate-800 transition shadow-lg mt-8">
+                Confirmar Pagamento - {formatCurrency(cartTotal)}
+              </button>
+            </form>
+          </div>
+
+          {/* Resumo Lateral */}
+          <div>
+            <div className="bg-slate-50 p-6 sm:p-8 rounded-sm sticky top-28 border border-gray-100">
+              <h3 className="text-lg font-serif text-slate-900 mb-6 border-b pb-4">Resumo do Pedido</h3>
+              <div className="space-y-4 mb-6">
+                {cart.map(item => (
+                  <div key={item.id} className="flex justify-between items-center text-sm">
+                    <div className="flex items-center">
+                      <span className="font-medium mr-2">{item.quantity}x</span>
+                      <span className="text-gray-600 truncate max-w-[150px] sm:max-w-[200px]">{item.name}</span>
+                    </div>
+                    <span className="font-medium text-slate-900">{formatCurrency(item.price * item.quantity)}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="border-t border-gray-200 pt-4 space-y-2 text-sm">
+                <div className="flex justify-between text-gray-600">
+                  <span>Subtotal</span>
+                  <span>{formatCurrency(cartTotal)}</span>
+                </div>
+                <div className="flex justify-between text-gray-600">
+                  <span>Frete Expresso Seguro</span>
+                  <span className="text-green-600">Grátis</span>
+                </div>
+                <div className="flex justify-between font-bold text-lg text-amber-700 pt-4 border-t mt-4">
+                  <span>Total</span>
+                  <span>{formatCurrency(cartTotal)}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const renderSuccess = () => (
+    <div className="max-w-3xl mx-auto px-4 py-24 text-center animate-fade-in min-h-[60vh] flex flex-col justify-center items-center">
+      <CheckCircle size={80} className="text-amber-600 mx-auto mb-6" />
+      <h1 className="text-4xl font-serif text-slate-900 mb-4">Pedido Confirmado!</h1>
+      <p className="text-lg text-gray-600 mb-8">
+        Obrigado por escolher a RAAB JOIAS. Seu pedido foi processado com sucesso e nossa equipe já está preparando suas peças com todo o cuidado que elas merecem.
+      </p>
+      <div className="bg-slate-50 p-6 w-full max-w-md rounded-sm border border-gray-200 mb-8 text-left">
+        <p className="text-sm text-gray-500 mb-1">Número do Pedido</p>
+        <p className="font-mono text-lg font-medium text-slate-900 mb-4">#RBJ-{Math.floor(Math.random() * 100000).toString().padStart(5, '0')}</p>
+        <p className="text-sm text-gray-500">Um e-mail de confirmação foi enviado para você com os detalhes da entrega.</p>
+      </div>
+      <button 
+        onClick={() => navigateTo('home')}
+        className="bg-slate-900 text-white px-8 py-3 uppercase tracking-widest text-sm hover:bg-slate-800 transition"
+      >
+        Voltar para a Loja
+      </button>
+    </div>
+  );
+
+  const renderFooter = () => (
+    <footer className="bg-slate-900 text-white pt-16 pb-8 border-t-4 border-amber-600">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-12 mb-12">
+          <div>
+            <h3 className="font-serif text-2xl tracking-widest mb-6">RAAB JOIAS</h3>
+            <p className="text-gray-400 text-sm leading-relaxed mb-6">
+              Nossa missão é eternizar seus momentos mais preciosos com joias de design exclusivo, qualidade impecável e sofisticação incomparável.
+            </p>
+          </div>
+          <div>
+            <h4 className="font-semibold uppercase tracking-wider text-sm mb-6 text-amber-500">Atendimento ao Cliente</h4>
+            <ul className="space-y-3 text-sm text-gray-400">
+              <li><a href="#" className="hover:text-amber-500 transition">Política de Trocas</a></li>
+              <li><a href="#" className="hover:text-amber-500 transition">Garantia e Cuidados</a></li>
+              <li><a href="#" className="hover:text-amber-500 transition">Rastreie seu Pedido</a></li>
+              <li><a href="#" className="hover:text-amber-500 transition">Perguntas Frequentes</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4 className="font-semibold uppercase tracking-wider text-sm mb-6 text-amber-500">Contato & Endereço</h4>
+            <ul className="space-y-4 text-sm text-gray-400">
+              <li className="flex items-start">
+                <span className="font-medium text-white min-w-[60px]">Loja:</span>
+                <span>R. Jerônimo da Veiga, 164<br/>Cj 9 D - Jd Europa<br/>São Paulo - SP, 04536-900</span>
+              </li>
+              <li className="flex items-center">
+                <span className="font-medium text-white min-w-[60px]">CNPJ:</span>
+                <span>12.319.363/0001-73</span>
+              </li>
+              <li className="flex items-center">
+                <span className="font-medium text-white min-w-[60px]">Email:</span>
+                <a href="mailto:contato@raabjoias.com.br" className="hover:text-amber-500">contato@raabjoias.com.br</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div className="border-t border-slate-800 pt-8 flex flex-col md:flex-row justify-between items-center text-xs text-gray-500">
+          <p>&copy; {new Date().getFullYear()} RAAB JOIAS. Todos os direitos reservados.</p>
+          <div className="flex space-x-4 mt-4 md:mt-0">
+            <span>Desenvolvido com sofisticação</span>
+          </div>
+        </div>
+      </div>
+    </footer>
+  );
+
+  return (
+    <div className="min-h-screen bg-white font-sans flex flex-col">
+      <style dangerouslySetInnerHTML={{__html: `
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@300;400;500;600&display=swap');
+        .font-serif { font-family: 'Playfair Display', serif; }
+        .font-sans { font-family: 'Inter', sans-serif; }
+        .animate-fade-in { animation: fadeIn 0.5s ease-out forwards; }
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+      `}} />
+      
+      {/* Aviso Superior - Promoção */}
+      <div className="bg-amber-600 text-white text-xs py-2 text-center uppercase tracking-widest font-medium">
+        Frete grátis para todo o Brasil em compras acima de R$ 2.000
+      </div>
+
+      {renderNavbar()}
+
+      <main className="flex-grow">
+        {view === 'home' && renderHome()}
+        {view === 'cart' && renderCart()}
+        {view === 'checkout' && renderCheckout()}
+        {view === 'success' && renderSuccess()}
+      </main>
+
+      {renderFooter()}
+    </div>
+  );
+}
+
+
+
+
+```
